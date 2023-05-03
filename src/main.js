@@ -1,32 +1,46 @@
-// 6. change imports to compensate for new export structure from models folder and remove the db import
-const { Pokemon, Trainer, Badge } = require("./models");
+const { db } = require("../db/connection.js");
+const Pokemon = require("./model");
 
 async function main() {
-  // 7. empty main function and store all entires for each table in constants at the top of main, this is for ease of use
-  const trainers = await Trainer.findAll();
-  const pokemon = await Pokemon.findAll();
-  const badges = await Badge.findAll();
+  await db.sync({ force: true });
 
-  // 8. demonstrate adding one pokemon to a trainer, followed by adding many
-  await trainers[0].addPokemon(pokemon[0]);
-  await trainers[0].addPokemons([pokemon[1], pokemon[2]]);
-
-  // 9. run a findOne on this trainer without eager loading to demonstrate the lack of pokemon information, then run a second search with eager loading
-  const trainer = await Trainer.findOne({ where: { name: "Red" } });
-  console.log(JSON.stringify(trainer, null, 2));
-  const trainerWithPokemon = await Trainer.findOne({
-    where: {
-      name: "Red",
-    },
-    include: Pokemon,
+  const Pikachu = await Pokemon.create({
+    name: "Pikachu",
+    type: "Electric",
+    weight: 6,
   });
-  console.log(JSON.stringify(trainerWithPokemon, null, 2));
+  console.log(JSON.stringify(Pikachu, null, 2));
+  await Pokemon.bulkCreate([
+    {
+      name: "Bulbasaur",
+      type: "Grass/Poison",
+      weight: 6.9,
+    },
+    {
+      name: "Charmander",
+      type: "Fire",
+      weight: 8.5,
+    },
+    {
+      name: "Squirtle",
+      type: "Water",
+      weight: 9,
+    },
+  ]);
 
-  // 10. demonstrate adding badges to two different trainers, followed by an eager loading search
-  await trainers[0].addBadge(badges[0]);
-  await trainers[1].addBadge(badges[0]);
-  const trainersWithBadges = await Trainer.findAll({ include: Badge });
-  console.log(JSON.stringify(trainersWithBadges, null, 2));
+  const currentPokemon = await Pokemon.findOne({ where: { name: "Pikachu" } });
+  console.log(JSON.stringify(currentPokemon, null, 2));
+  const allPokemon = await Pokemon.findAll();
+  console.log(JSON.stringify(allPokemon, null, 2));
+
+  const updateResult = await Pokemon.update(
+    { name: "Ivysaur", weight: 13 },
+    { where: { name: "Bulbasaur" } }
+  );
+  console.log(updateResult);
+
+  const deleteResult = await Pokemon.destroy({ where: { name: "Squirtle" } });
+  console.log(deleteResult);
 }
 
 main();

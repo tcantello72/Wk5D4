@@ -8,6 +8,7 @@ async function seed() {
   await Pokemon.bulkCreate(pokemon);
   await Trainer.bulkCreate(trainers);
   await Badge.bulkCreate(badges);
+  console.log('🌱 Database Seeded!')
 }
 
 seed();
